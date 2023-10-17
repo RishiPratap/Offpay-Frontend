@@ -3,9 +3,7 @@ import 'dart:convert';
 import 'package:lottie/lottie.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:offpay/HomePageUI.dart';
 import 'package:offpay/dashboard_screen.dart' as DashboardScreen;
-import 'package:offpay/setPinPage.dart';
 import 'package:offpay/signup.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
@@ -32,49 +30,46 @@ class MyCustomFormState extends State<MyLogin> {
     var url =
         Uri.parse('https://offpay-production.up.railway.app/loginWithEmail');
     var response = await http.post(url, body: {
-      "email": emailController.text,
-      "password": passController.text
+      "loginEmail": emailController.text,
+      "loginPass": passController.text
     });
     print('Response status: ${response.statusCode}');
     print('Response body: ${response.body}');
     StatusCode = response.statusCode;
     BodyMsg = response.body;
-    if (StatusCode == 200) {
-      var result = jsonDecode(response.body);
-      AwesomeDialog(
-        context: context,
-        dialogType: DialogType.SUCCES,
-        animType: AnimType.SCALE,
-        title: 'Successfully Login',
-        btnOkText: 'Confirm',
-        btnOkIcon: Icons.verified,
-        dismissOnTouchOutside: false,
-        btnOkOnPress: () async {
-          SharedPreferences prefs = await SharedPreferences.getInstance();
-          prefs.setString('publicId', result["result"]["publicId"]);
-          prefs.setString('email', result["result"]["email"]);
-          prefs.setString('name', result["result"]["name"]);
-          prefs.setString('phone', result["result"]["phone"]);
-          prefs.setString('privateToken', result["result"]["privateToken"]);
-          prefs.setInt('balance', result["result"]["balance"]);
-          Navigator.of(context).pushReplacement(
-              MaterialPageRoute(builder: (BuildContext context) => HomeUI()));
-        },
-      ).show();
-    } else {
-      AwesomeDialog(
-        context: context,
-        dialogType: DialogType.ERROR,
-        animType: AnimType.SCALE,
-        title: '$BodyMsg',
-        btnOkText: 'Try Again',
-        btnOkIcon: Icons.arrow_back_ios,
-        dismissOnTouchOutside: false,
-        btnOkOnPress: () {
-          return null;
-        },
-      ).show();
-    }
+    Navigator.of(context).pushReplacement(MaterialPageRoute(
+        builder: (BuildContext context) =>
+            const DashboardScreen.DashboardScreen()));
+    // if (StatusCode != 200) {
+    //   AwesomeDialog(
+    //     context: context,
+    //     dialogType: DialogType.SUCCES,
+    //     animType: AnimType.SCALE,
+    //     title: 'Successfully Login',
+    //     btnOkText: 'Confirm',
+    //     btnOkIcon: Icons.verified,
+    //     dismissOnTouchOutside: false,
+    //     btnOkOnPress: () async {
+    //       SharedPreferences prefs = await SharedPreferences.getInstance();
+    //       prefs.setString('email', emailController.text);
+    //       //Navigator.of(context).pop(); //to be used later after completion
+
+    //     },
+    //   ).show();
+    // } else {
+    //   AwesomeDialog(
+    //     context: context,
+    //     dialogType: DialogType.ERROR,
+    //     animType: AnimType.SCALE,
+    //     title: '$BodyMsg',
+    //     btnOkText: 'Try Again',
+    //     btnOkIcon: Icons.arrow_back_ios,
+    //     dismissOnTouchOutside: false,
+    //     btnOkOnPress: () {
+    //       return null;
+    //     },
+    //   ).show();
+    // }
   }
 
   @override
@@ -107,7 +102,7 @@ class MyCustomFormState extends State<MyLogin> {
                 child: SingleChildScrollView(
               child: Container(
                 height: null,
-                width: MediaQuery.of(context).size.width,
+                width: MediaQuery.of(context).size.height,
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -120,7 +115,7 @@ class MyCustomFormState extends State<MyLogin> {
                         ),
                         Container(
                           width: double.infinity,
-                          height: 500,
+                          height: 600,
                           color: Colors.blue,
                           child: Container(
                             margin: EdgeInsets.all(20),
@@ -260,37 +255,26 @@ class MyCustomFormState extends State<MyLogin> {
                                       ),
                                       Padding(
                                         padding: const EdgeInsets.symmetric(
-                                            vertical: 10),
+                                            vertical: 20),
                                         child: Row(
                                           mainAxisAlignment:
                                               MainAxisAlignment.center,
                                           children: [
-                                            Text(
-                                              "Create a new account? ",
-                                              style: TextStyle(
-                                                  fontFamily: 'Mulish',
-                                                  fontWeight: FontWeight.w600,
-                                                  fontSize: 18),
-                                            ),
+                                            Text("Already have an account? "),
                                             InkWell(
-                                                child: Padding(
-                                                  padding: EdgeInsets.all(5),
-                                                  child: Text(
-                                                    "Signup",
-                                                    style: TextStyle(
-                                                        fontFamily: 'Mulish',
-                                                        fontWeight:
-                                                            FontWeight.w600,
-                                                        color: Colors.white,
-                                                        fontSize: 18),
-                                                  ),
+                                                child: Text(
+                                                  "Login",
+                                                  style: TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                      fontSize: 18),
                                                 ),
                                                 onTap: () {
                                                   Navigator.push(
                                                     context,
                                                     MaterialPageRoute(
                                                         builder: (context) =>
-                                                            MySignUp()),
+                                                            MyLogin()),
                                                   );
                                                 })
                                           ],
@@ -298,7 +282,7 @@ class MyCustomFormState extends State<MyLogin> {
                                       ),
                                       Padding(
                                         padding: const EdgeInsets.symmetric(
-                                            vertical: 10),
+                                            vertical: 20),
                                         child: Container(
                                           decoration: BoxDecoration(
                                             borderRadius:
@@ -334,7 +318,7 @@ class MyCustomFormState extends State<MyLogin> {
                                                   BorderRadius.circular(10),
                                             ),
                                             child: Text(
-                                              "Login",
+                                              "Sign Up",
                                               style: TextStyle(
                                                 fontWeight: FontWeight.w600,
                                                 fontSize: 16,

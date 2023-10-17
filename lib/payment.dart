@@ -1,6 +1,8 @@
 import 'package:razorpay_flutter/razorpay_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
 
 class Cart extends StatefulWidget {
   @override
@@ -26,11 +28,12 @@ class _CartState extends State<Cart> {
   }
 
   void openCheckout() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
     var options = {
       'key': 'rzp_test_Winb5v7jIudsVb',
-      'amount': 100,
-      'name': 'Rishi Pratap',
-      'description': 'Payment',
+      'amount': int.parse(amtController.text)*100,
+      'name': prefs.getString('name'),
+      'description': 'Adding Money to OffPay Wallet',
       'prefill': {'contact': '8888888888', 'email': 'test@razorpay.com'},
       'external': {
         'wallets': ['paytm']
@@ -44,9 +47,25 @@ class _CartState extends State<Cart> {
     }
   }
 
-  void _handlePaymentSuccess(PaymentSuccessResponse response) {
+  void _handlePaymentSuccess(PaymentSuccessResponse response) async{
     Fluttertoast.showToast(
         msg: "SUCCESS: " + response.paymentId.toString(), timeInSecForIosWeb: 4);
+
+    var url = "https://offpay-production.up.railway.app/users/addBalance";
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    var re = await http.post(Uri.parse(url), body: {
+      "publicId": prefs.getString('publicId'),
+      "amount": amtController.text
+    });
+
+    print(re.body);
+
+    if(re.statusCode == 200){
+      int currBalance = prefs.getInt('balance')!;
+      currBalance += int.parse(amtController.text);
+      prefs.setInt('balance', currBalance);
+    }
   }
 
   void _handlePaymentError(PaymentFailureResponse response) {
@@ -60,8 +79,12 @@ class _CartState extends State<Cart> {
         msg: "EXTERNAL_WALLET: " + response.walletName.toString(), timeInSecForIosWeb: 4);
   }
 
+  TextEditingController amtController = TextEditingController();
+
+
   @override
   Widget build(BuildContext context) {
+
           return MaterialApp(
               title: "OFFPAY",
               theme: ThemeData(
@@ -80,6 +103,38 @@ class _CartState extends State<Cart> {
             ),
             body: ListView(
                 children: [
+                  SizedBox(height: 25,),
+                  Text("Enter Amount to Add to Wallet"),
+                  Center(
+                    child: IntrinsicWidth(
+                      child: Container(
+                        child: TextFormField(
+                          controller: amtController,
+                          keyboardType: TextInputType.number,
+                          decoration: InputDecoration(
+                            border: InputBorder.none,
+                            prefix: Text('₹ ',
+                                style: TextStyle(
+                                    fontSize:
+                                    40)), // Add Rupee symbol as prefix
+                            hintText: '0',
+                            hintStyle: TextStyle(
+                                fontSize:
+                                40), // Increase font size to make it appear bigger
+                            contentPadding: EdgeInsets.all(
+                                16), // Increase padding to make it appear bigger
+                          ),
+                          style: TextStyle(fontSize: 40),
+                          validator: (value) {
+                            if (value?.isEmpty ?? true) {
+                              return 'Amount is required';
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+                    ),
+                  ),
                   SizedBox(height: 20.0),
                   InkWell(
                       onTap: () {
